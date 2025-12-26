@@ -1,4 +1,4 @@
-CREATE TABLE oauth2_authorization_consent (
+CREATE TABLE IF NOT EXISTS oauth2_authorization_consent (
     -- 客户端注册ID
     -- 关联 oauth2_registered_client 表的 id 字段
     -- 表示哪个客户端应用

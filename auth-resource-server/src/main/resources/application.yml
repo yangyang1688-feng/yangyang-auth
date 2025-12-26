@@ -1,0 +1,15 @@
+# 资源服务器 application.yml
+server:
+  port: 8080
+
+spring:
+  security:
+    oauth2:
+      resource-server:
+        jwt:
+          issuer-uri: http://localhost:9000
+          # 或者明确指定 jwk-set-uri
+          # jwk-set-uri: http://localhost:9000/oauth2/jwks
+      # 如果是授权服务器，还需要
+      #authorizationserver:
+        #issuer: http://localhost:9000

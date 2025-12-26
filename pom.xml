@@ -10,6 +10,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>auth-server</module>
+        <module>auth-resource-server</module>
     </modules>
 
     <properties>
@@ -25,5 +26,17 @@
         <version>3.2.7</version>
         <relativePath/>
     </parent>
+
+    <!-- 插件管理 -->
+<!--    <build>-->
+<!--        <pluginManagement>-->
+<!--            <plugins>-->
+<!--                <plugin>-->
+<!--                    <groupId>org.springframework.boot</groupId>-->
+<!--                    <artifactId>spring-boot-maven-plugin</artifactId>-->
+<!--                </plugin>-->
+<!--            </plugins>-->
+<!--        </pluginManagement>-->
+<!--    </build>-->
 
 </project>

@@ -6,8 +6,7 @@
 -- 支持: authorization_code, client_credentials, refresh_token,
 --       device_code, password, JWT bearer 等授权类型
 -- ========================================================
-
-CREATE TABLE oauth2_authorization (
+CREATE TABLE IF NOT EXISTS oauth2_authorization (
     -- 授权记录唯一标识符
     -- 通常使用UUID或类似唯一值
     -- 主键，用于快速查找授权记录

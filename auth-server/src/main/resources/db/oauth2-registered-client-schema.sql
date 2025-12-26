@@ -1,5 +1,4 @@
-DROP TABLE IF EXISTS `oauth2_registered_client`;
-CREATE TABLE `oauth2_registered_client`  (
+CREATE TABLE IF NOT EXISTS `oauth2_registered_client`  (
      `id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键ID',
      `client_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '客户端ID',
      `client_id_issued_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '客户端ID发放时间',
