@@ -50,6 +50,16 @@
             <version>8.0.33</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- Spring WebFlux (包含 WebClient) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gitee.loulan_yxq</groupId>
+            <artifactId>owner-all</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

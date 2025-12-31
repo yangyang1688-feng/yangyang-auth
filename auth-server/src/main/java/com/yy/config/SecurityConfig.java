@@ -16,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
+import static com.yy.config.CustomClientMetadataConfig.configureCustomClientMetadataConverters;
+
 /**
  * 授权服务器安全配置类
  * @ClassName: SecurityConfig
@@ -41,9 +43,13 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
             throws Exception {
+        // 应用默认的OAuth2授权服务器配置
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-                .oidc(Customizer.withDefaults());	// Enable OpenID Connect 1.0
+                .oidc(oidc -> oidc.clientRegistrationEndpoint(clientRegistrationEndpoint -> {
+                    clientRegistrationEndpoint
+                            .authenticationProviders(configureCustomClientMetadataConverters());
+                }));	// Enable OpenID Connect 1.0
         http
                 // Redirect to the login page when not authenticated from the
                 // authorization endpoint
@@ -54,8 +60,9 @@ public class SecurityConfig {
                         )
                 )
                 // Accept access tokens for User Info and/or Client Registration
-                .oauth2ResourceServer((resourceServer) -> resourceServer
-                        .jwt(Customizer.withDefaults()));
+//                .oauth2ResourceServer((resourceServer) -> resourceServer
+//                        .jwt(Customizer.withDefaults()))
+        ;
 
         return http.build();
     }

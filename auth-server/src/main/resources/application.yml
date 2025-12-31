@@ -19,3 +19,11 @@ spring:
 
 server:
   port: 9000
+logging:
+  level:
+    org:
+      springframework:
+        web:
+          reactive:
+            function:
+              client: DEBUG
