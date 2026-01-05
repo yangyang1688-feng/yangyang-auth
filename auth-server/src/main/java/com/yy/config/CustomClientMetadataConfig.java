@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.oidc.OidcClientRegistration;
 import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcClientConfigurationAuthenticationProvider;
@@ -21,7 +22,7 @@ import org.springframework.util.CollectionUtils;
 public class CustomClientMetadataConfig {
 
 	public static Consumer<List<AuthenticationProvider>> configureCustomClientMetadataConverters() {
-		List<String> customClientMetadata = List.of("logo_uri", "contacts");
+		List<String> customClientMetadata = List.of("logo_uri", "contacts","settings.client.require-proof-key","settings.client.require-authorization-consent");
 
 		return (authenticationProviders) -> {
 			CustomRegisteredClientConverter registeredClientConverter =
@@ -63,6 +64,33 @@ public class CustomClientMetadataConfig {
 						clientSettingsBuilder.setting(claim, value);
 					}
 				});
+			}
+			Object authMethods = clientRegistration.getClaim("token_endpoint_auth_methods");
+			if (authMethods instanceof List) {
+				List<String> methods = (List<String>) authMethods;
+				RegisteredClient.Builder builder = RegisteredClient.from(registeredClient);
+				for (String method : methods) {
+					switch (method) {
+                        case "client_secret_post":
+							builder.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST);
+							break;
+						// 添加其他支持的认证方法
+						case "client_secret_jwt":
+							builder.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_JWT);
+							break;
+						case "private_key_jwt":
+							builder.clientAuthenticationMethod(ClientAuthenticationMethod.PRIVATE_KEY_JWT);
+							break;
+						case "none":
+							builder.clientAuthenticationMethod(ClientAuthenticationMethod.NONE);
+							break;
+						default:
+							builder.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC);
+					}
+				}
+				return builder
+						.clientSettings(clientSettingsBuilder.build())
+						.build();
 			}
 
 			return RegisteredClient.from(registeredClient)

@@ -56,9 +56,15 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>io.gitee.loulan_yxq</groupId>-->
+<!--            <artifactId>owner-all</artifactId>-->
+<!--        </dependency>-->
+
         <dependency>
-            <groupId>io.gitee.loulan_yxq</groupId>
-            <artifactId>owner-all</artifactId>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.8.26</version>
         </dependency>
     </dependencies>
 

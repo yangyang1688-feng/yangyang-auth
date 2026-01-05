@@ -1,9 +1,13 @@
 package com.yy.config;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.assertj.core.util.Maps;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import reactor.core.publisher.Mono;
 
 import org.springframework.http.HttpHeaders;
@@ -24,7 +28,12 @@ public class ClientRegistrar {
 			@JsonProperty("redirect_uris") List<String> redirectUris,
 			@JsonProperty("logo_uri") String logoUri,
 			List<String> contacts,
-			String scope) {
+			String scope,
+			@JsonProperty("token_endpoint_auth_method") String tokenEndpointAuthMethod,
+			@JsonProperty("token_endpoint_auth_methods") List<String> clientAuthenticationMethods,
+			@JsonProperty("client_settings")Map<String,Object> clientSettings,
+			@JsonProperty("settings.client.require-proof-key") boolean requireProofKey,
+			@JsonProperty("settings.client.require-authorization-consent") boolean requireAuthorizationConsent) {
 	}
 
 	public record ClientRegistrationResponse(
@@ -37,31 +46,42 @@ public class ClientRegistrar {
 			@JsonProperty("redirect_uris") List<String> redirectUris,
 		 	@JsonProperty("logo_uri") String logoUri,
 		 	List<String> contacts,
-			String scope) {
+			String scope,
+			@JsonProperty("token_endpoint_auth_method") String tokenEndpointAuthMethod,
+			@JsonProperty("token_endpoint_auth_methods") List<String> clientAuthenticationMethods,
+			@JsonProperty("client_settings")Map<String,Object> clientSettings,
+			@JsonProperty("settings.client.require-proof-key") boolean requireProofKey,
+			@JsonProperty("settings.client.require-authorization-consent") boolean requireAuthorizationConsent) {
 	}
 
 	public void exampleRegistration(String initialAccessToken) {
+		Map<String, Object> map = Maps.newHashMap("require-proof-key", false);
+		map.put("require-authorization-consent", false);
 		ClientRegistrationRequest clientRegistrationRequest = new ClientRegistrationRequest(
-				"client-1",
+				"client-3",
 				List.of(AuthorizationGrantType.AUTHORIZATION_CODE.getValue()),
-				List.of("https://client.example.org/callback", "https://client.example.org/callback2"),
-				"https://client.example.org/logo",
+				List.of("http://localhost:8080/login/oauth2/code/test-client", "https://www.baidu.com"),
+				"https://www.baidu.com",
 				List.of("contact-1", "contact-2"),
-				"openid email profile"
+				"openid email profile",
+				"client_secret_basic", // 主要认证方法
+				List.of("client_secret_basic", "client_secret_post"),
+				map,false,false
+
 		);
 
 		ClientRegistrationResponse clientRegistrationResponse =
 				registerClient(initialAccessToken, clientRegistrationRequest);
-
-		assert (clientRegistrationResponse.clientName().contentEquals("client-1"));
+		System.out.println("客户端密钥为："+clientRegistrationResponse.clientSecret);
+		assert (clientRegistrationResponse.clientName().contentEquals("client-3"));
 		assert (!Objects.isNull(clientRegistrationResponse.clientSecret()));
 		assert (clientRegistrationResponse.scope().contentEquals("openid profile email"));
 		assert (clientRegistrationResponse.grantTypes().contains(AuthorizationGrantType.AUTHORIZATION_CODE.getValue()));
-		assert (clientRegistrationResponse.redirectUris().contains("https://client.example.org/callback"));
-		assert (clientRegistrationResponse.redirectUris().contains("https://client.example.org/callback2"));
+		assert (clientRegistrationResponse.redirectUris().contains("http://localhost:8080/login/oauth2/code/test-client"));
+		assert (clientRegistrationResponse.redirectUris().contains("https://www.baidu.com"));
 		assert (!clientRegistrationResponse.registrationAccessToken().isEmpty());
 		assert (!clientRegistrationResponse.registrationClientUri().isEmpty());
-		assert (clientRegistrationResponse.logoUri().contentEquals("https://client.example.org/logo"));
+		assert (clientRegistrationResponse.logoUri().contentEquals("https://www.baidu.com"));
 		assert (clientRegistrationResponse.contacts().size() == 2);
 		assert (clientRegistrationResponse.contacts().contains("contact-1"));
 		assert (clientRegistrationResponse.contacts().contains("contact-2"));
@@ -71,14 +91,14 @@ public class ClientRegistrar {
 
 		ClientRegistrationResponse retrievedClient = retrieveClient(registrationAccessToken, registrationClientUri);
 
-		assert (retrievedClient.clientName().contentEquals("client-1"));
+		assert (retrievedClient.clientName().contentEquals("client-3"));
 		assert (!Objects.isNull(retrievedClient.clientId()));
 		assert (!Objects.isNull(retrievedClient.clientSecret()));
 		assert (retrievedClient.scope().contentEquals("openid profile email"));
 		assert (retrievedClient.grantTypes().contains(AuthorizationGrantType.AUTHORIZATION_CODE.getValue()));
-		assert (retrievedClient.redirectUris().contains("https://client.example.org/callback"));
-		assert (retrievedClient.redirectUris().contains("https://client.example.org/callback2"));
-		assert (retrievedClient.logoUri().contentEquals("https://client.example.org/logo"));
+		assert (retrievedClient.redirectUris().contains("http://localhost:8080/login/oauth2/code/test-client"));
+		assert (retrievedClient.redirectUris().contains("https://www.baidu.com"));
+		assert (retrievedClient.logoUri().contentEquals("https://www.baidu.com"));
 		assert (retrievedClient.contacts().size() == 2);
 		assert (retrievedClient.contacts().contains("contact-1"));
 		assert (retrievedClient.contacts().contains("contact-2"));
@@ -87,17 +107,29 @@ public class ClientRegistrar {
 	}
 
 	public ClientRegistrationResponse registerClient(String initialAccessToken, ClientRegistrationRequest request) {
-		return this.webClient
-				.post()
-				.uri("/connect/register")
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer "+initialAccessToken)
-				.body(Mono.just(request), ClientRegistrationRequest.class)
-				.retrieve()
-				.bodyToMono(ClientRegistrationResponse.class)
-				.block();
-	}
+        try {
+            return this.webClient
+                    .post()
+                    .uri("/connect/register")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer "+initialAccessToken)
+//				.body(Mono.just(request), ClientRegistrationRequest.class)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, response -> {
+                        // 将HTTP错误信息转换为异常消息
+                        return response.bodyToMono(String.class)
+                                .flatMap(errorBody -> Mono.error(new RuntimeException(
+                                        "HTTP " + response.statusCode() + " - " + errorBody)));
+                    })
+                    .bodyToMono(ClientRegistrationResponse.class)
+                    .block();
+        } catch (Exception e) {
+			System.out.println("请求失败："+e.getMessage());
+            throw e;
+        }
+    }
 
 	public ClientRegistrationResponse retrieveClient(String registrationAccessToken, String registrationClientUri) {
 		return this.webClient

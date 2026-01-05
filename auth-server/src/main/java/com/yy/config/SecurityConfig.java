@@ -6,6 +6,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,46 +27,41 @@ import static com.yy.config.CustomClientMetadataConfig.configureCustomClientMeta
  * @version: 1.0.0
  */
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     // 授权服务器安全配置
-//    @Bean
-//    @Order(1)
-//    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-//        OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-//        http
-//            .exceptionHandling(exceptions -> exceptions
-//                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
-//            );
-//        return http.build();
-//    }
     @Bean
     @Order(1)
-    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
-            throws Exception {
-        // 应用默认的OAuth2授权服务器配置
+    public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
+        // 应用OAuth2授权服务器的默认安全配置
         OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
+        // 获取OAuth2授权服务器配置器，配置OIDC和客户端注册端点
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-                .oidc(oidc -> oidc.clientRegistrationEndpoint(clientRegistrationEndpoint -> {
-                    clientRegistrationEndpoint
-                            .authenticationProviders(configureCustomClientMetadataConverters());
-                }));	// Enable OpenID Connect 1.0
-        http
-                // Redirect to the login page when not authenticated from the
-                // authorization endpoint
-                .exceptionHandling((exceptions) -> exceptions
-                        .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
-                                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+                .oidc(oidc -> oidc
+                        // 启用OIDC 1.0（第一个配置的功能）
+                        .clientRegistrationEndpoint(clientRegistrationEndpoint ->
+                                // 启用动态客户端注册并配置自定义认证提供者（第二个配置的功能）
+                                clientRegistrationEndpoint.authenticationProviders(configureCustomClientMetadataConverters())
                         )
+                );
+
+        // 异常处理配置（来自第一个配置）
+        http.exceptionHandling((exceptions) -> exceptions
+                .defaultAuthenticationEntryPointFor(
+                        new LoginUrlAuthenticationEntryPoint("/login"),
+                        new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                 )
-                // Accept access tokens for User Info and/or Client Registration
-//                .oauth2ResourceServer((resourceServer) -> resourceServer
-//                        .jwt(Customizer.withDefaults()))
-        ;
+        );
+
+        // 资源服务器配置（两个配置均有，合并保留）
+        http.oauth2ResourceServer(resourceServer -> resourceServer
+                .jwt(Customizer.withDefaults())
+        );
 
         return http.build();
     }
+
 
     // 默认安全配置
     @Bean

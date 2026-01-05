@@ -2,18 +2,17 @@ package com.yy;
 
 import com.yy.config.ClientRegistrar;
 import com.yy.dto.TokenDTO;
-import io.gitee.loulan_yxq.owner.http.HttpMethod;
-import io.gitee.loulan_yxq.owner.http.HttpTool;
-import io.gitee.loulan_yxq.owner.json.tool.JsonTool;
+import com.yy.tools.JsonParserTool;
 import jakarta.annotation.Resource;
-import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.reactive.function.client.WebClient;
-
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import cn.hutool.http.HttpRequest;
 
 /**
  * 客户端测试类
@@ -27,19 +26,42 @@ public class ClientServiceTest {
     @Resource
     private WebClient oauthWebClient;
     @Test
-    void testDynamicRegister(){
+    void testDynamicRegister() throws Exception {
         ClientRegistrar registrar = new ClientRegistrar(oauthWebClient);
         //获取token
         Map<String, String> headMap = new LinkedHashMap<>(2);
         headMap.put("Content-Type","application/x-www-form-urlencoded");
         headMap.put("Authorization","Basic cmVnaXN0cmFyLWNsaWVudDpzZWNyZXQ=");
 
-        Map<String, String> paramMap = new LinkedHashMap<>(3);
-        paramMap.put("Content-Type","application/x-www-form-urlencoded");
-        paramMap.put("grant_type", "client_credentials");
-        paramMap.put("scope", "client.create");
-        String post = HttpTool.request("http://localhost:9000/oauth2/token", HttpMethod.POST, StandardCharsets.UTF_8,headMap, paramMap, JsonTool.toJson(paramMap));
-        TokenDTO tokenDTO = JsonTool.parseObj(post, TokenDTO.class);
+
+//        Map<String, String> paramMap = new LinkedHashMap<>(3);
+//        paramMap.put("Content-Type","application/x-www-form-urlencoded");
+//        paramMap.put("grant_type", "client_credentials");
+//        paramMap.put("scope", "client.create");
+//        String post = HttpTool.request("http://localhost:9000/oauth2/token", HttpMethod.POST, StandardCharsets.UTF_8,headMap, paramMap, null);
+//        TokenDTO tokenDTO = JsonTool.parseObj(post, TokenDTO.class);
+//        registrar.exampleRegistration(tokenDTO.getAccess_token());
+
+        // 1. 准备表单参数（与图片中完全一致）
+        Map<String, Object> formParams = new HashMap<>();
+        formParams.put("grant_type", "client_credentials");
+        formParams.put("scope", "client.create");
+
+        // 2. 发送POST请求
+        String response = HttpRequest.post("http://localhost:9000/oauth2/token")
+                .headerMap(headMap,false)
+                .form(formParams)  // 关键：以表单形式传递参数
+                .execute()
+                .body();
+        System.out.println(response);
+        TokenDTO tokenDTO = JsonParserTool.parseToEntity(response,TokenDTO.class);
         registrar.exampleRegistration(tokenDTO.getAccess_token());
+
+
+
+
+
     }
+
+
 }
