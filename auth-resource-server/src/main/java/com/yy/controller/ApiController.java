@@ -19,6 +19,11 @@ public class ApiController {
         info.put("scopes", jwt.getClaim("scope"));
         return info;
     }
+
+    @GetMapping("/getEmailInfo")
+    public String getEmailInfo() {;
+        return "email";
+    }
     
     @GetMapping("/public/health")
     public String health() {

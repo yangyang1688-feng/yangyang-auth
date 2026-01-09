@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -68,10 +69,19 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().authenticated()
-            )
-            .formLogin(Customizer.withDefaults());
+                .formLogin(Customizer.withDefaults())
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        // 按顺序从具体到通用进行匹配
+//                        .requestMatchers("/health").permitAll() // 健康检查
+//                        .requestMatchers("/public/api/v1/notice").permitAll() // 特定的公告接口
+//                        .requestMatchers("/public/api/**").permitAll() // 整个公共API组
+//                        .requestMatchers("/docs/api.html", "/docs/**").permitAll() // 文档
+                        .requestMatchers("/test/**").permitAll() // 您的测试接口
+                        .requestMatchers("/login", "/favicon.ico").permitAll() // 登录页和网站图标
+                        .anyRequest().authenticated() // 其余所有接口均需认证
+                );
         return http.build();
     }
 

@@ -23,6 +23,7 @@ public class ResourceServerConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/public/**").permitAll()
                 .requestMatchers("/api/**").hasAuthority("SCOPE_read")
+                    .requestMatchers("/getEmailInfo").hasAuthority("SCOPE_email")
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2

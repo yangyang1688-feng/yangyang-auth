@@ -7,6 +7,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import cn.hutool.core.util.StrUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -18,7 +20,7 @@ import org.springframework.security.oauth2.server.authorization.oidc.converter.O
 import org.springframework.security.oauth2.server.authorization.oidc.converter.RegisteredClientOidcClientRegistrationConverter;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.util.CollectionUtils;
-
+@Slf4j
 public class CustomClientMetadataConfig {
 
 	public static Consumer<List<AuthenticationProvider>> configureCustomClientMetadataConverters() {
@@ -55,7 +57,15 @@ public class CustomClientMetadataConfig {
 
 		@Override
 		public RegisteredClient convert(OidcClientRegistration clientRegistration) {
+			String clientId = clientRegistration.getClientId();
+			log.info("用户自定义clientId:{}",clientId);
 			RegisteredClient registeredClient = this.delegate.convert(clientRegistration);
+			//自定义clientId处理逻辑
+			if(StrUtil.isNotBlank(clientId)){
+                assert registeredClient != null;
+				registeredClient = RegisteredClient.from(registeredClient).clientId(clientId).build();
+
+			}
 			ClientSettings.Builder clientSettingsBuilder = ClientSettings.withSettings(
 					registeredClient.getClientSettings().getSettings());
 			if (!CollectionUtils.isEmpty(this.customClientMetadata)) {
@@ -92,7 +102,6 @@ public class CustomClientMetadataConfig {
 						.clientSettings(clientSettingsBuilder.build())
 						.build();
 			}
-
 			return RegisteredClient.from(registeredClient)
 					.clientSettings(clientSettingsBuilder.build())
 					.build();

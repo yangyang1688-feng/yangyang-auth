@@ -33,15 +33,6 @@ public class ClientServiceTest {
         headMap.put("Content-Type","application/x-www-form-urlencoded");
         headMap.put("Authorization","Basic cmVnaXN0cmFyLWNsaWVudDpzZWNyZXQ=");
 
-
-//        Map<String, String> paramMap = new LinkedHashMap<>(3);
-//        paramMap.put("Content-Type","application/x-www-form-urlencoded");
-//        paramMap.put("grant_type", "client_credentials");
-//        paramMap.put("scope", "client.create");
-//        String post = HttpTool.request("http://localhost:9000/oauth2/token", HttpMethod.POST, StandardCharsets.UTF_8,headMap, paramMap, null);
-//        TokenDTO tokenDTO = JsonTool.parseObj(post, TokenDTO.class);
-//        registrar.exampleRegistration(tokenDTO.getAccess_token());
-
         // 1. 准备表单参数（与图片中完全一致）
         Map<String, Object> formParams = new HashMap<>();
         formParams.put("grant_type", "client_credentials");
@@ -56,10 +47,6 @@ public class ClientServiceTest {
         System.out.println(response);
         TokenDTO tokenDTO = JsonParserTool.parseToEntity(response,TokenDTO.class);
         registrar.exampleRegistration(tokenDTO.getAccess_token());
-
-
-
-
 
     }
 

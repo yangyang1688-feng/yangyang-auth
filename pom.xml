@@ -11,6 +11,7 @@
     <modules>
         <module>auth-server</module>
         <module>auth-resource-server</module>
+        <module>client-ts1</module>
     </modules>
 
     <properties>
