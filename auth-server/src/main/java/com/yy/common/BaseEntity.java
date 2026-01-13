@@ -3,7 +3,6 @@ package com.yy.common;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.OrderBy;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -50,6 +49,6 @@ public class BaseEntity implements Serializable {
     /**
      * 数据状态：null删除，1正常。（使用null是为了再逻辑删除情况下保证唯一索引的正常使用）
      */
-    @TableLogic(value = "1", delval = "NULL")
-    private Integer delFlag;
+//    @TableLogic(value = "1", delval = "NULL")
+//    private Integer delFlag;
 }

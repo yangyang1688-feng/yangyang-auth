@@ -1,5 +1,6 @@
 package com.yy.config;
 
+import com.yy.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -11,6 +12,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
@@ -30,6 +33,11 @@ import static com.yy.config.CustomClientMetadataConfig.configureCustomClientMeta
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final CustomUserDetailsService customUserDetailsService;
+
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+        this.customUserDetailsService = customUserDetailsService;
+    }
 
     // 授权服务器安全配置
     @Bean
@@ -70,6 +78,7 @@ public class SecurityConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .formLogin(Customizer.withDefaults())
+                .userDetailsService(customUserDetailsService)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
@@ -86,13 +95,22 @@ public class SecurityConfig {
     }
 
     // 用户详情服务（生产环境应从数据库加载）
-    @Bean 
-    public UserDetailsService userDetailsService() {
-        UserDetails user = User.withDefaultPasswordEncoder()
-            .username("user")
-            .password("password")
-            .roles("USER")
-            .build();
-        return new InMemoryUserDetailsManager(user);
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        UserDetails user = User.withDefaultPasswordEncoder()
+//            .username("user")
+//            .password("password")
+//            .roles("USER")
+//            .build();
+//        return new InMemoryUserDetailsManager(user);
+//    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        // 默认构造使用强度10， 也可用 new BCryptPasswordEncoder(12) 调整强度
+        return new BCryptPasswordEncoder();
     }
+
+
+
 }

@@ -1,14 +1,11 @@
 package com.yy.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
-
 import com.yy.common.BaseEntity;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * 系统用户表
@@ -16,6 +13,7 @@ import lombok.Data;
  */
 @TableName(value ="sys_user")
 @Data
+@Accessors(chain = true)
 public class SysUser extends BaseEntity {
     /**
      * 主键id
